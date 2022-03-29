@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page_title }}</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
+<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/static/catalog.css">
+</head>
+<body>
+
+    <div class="container">
+      <h1>{{page_title}}</h1>
+      <hr /><br />
+      <p>
+        <form>
+          <label for="site-search">Search for courses:</label>
+          <input type="search" id="course-search" name="q"
+                aria-label="Search for a course" />
+          Search By:
+          <input type="radio" id="course_name" name="search_by" value="course_name" checked>
+          <label for="course_name">Course Name</label>
+
+          <input type="radio" id="course_id" name="search_by" value="course_id" />
+          <label for="course_id">Course ID</label>
+
+          <button onclick="searchCourses($(q).prop('value'))" type="button">Search</button>
+        </form>
+      </p>
+      <br /><hr /><br />
+      <div id="results">
+        
+      </div>
+    </div>
+    <br />
+    <br />
+
+    <script>
+      function callEnroll(mode, courseId){
+        let uuid = "{{uuid}}";
+        $.ajax({
+          type:'POST',
+          dataType:'JSON',
+          url:'/enrollments/',
+          data:{courseId:courseId,mode:mode,uuid:uuid},
+          success:function(data)
+          {
+            var data=eval(data);
+            console.log('enroll/unenroll successful: ' + data);
+          },
+          error: function(xhr,data)
+          {
+            console.log(data + " " + courseId + " " + xhr.status)
+
+            if(xhr.status !== 201 && xhr.status !== 204) {
+              alert('There was an error processing your request which has corrupted this page. Please copy the text below and send to developers@blackboard.com.\r\n\r\n\tRequest Status: ' + xhr.status + ' Status Text: ' + xhr.statusText + ' ' + xhr.responseText + ' UUID: ' + uuid + ' CourseId: ' + courseId +  '\r\n\r\nOnce you are done, click OK, close this panel, and reload.');
+            }
+          }
+        });
+      };
+
+      function searchCourses(query){
+        var searchBy = $('input[name="search_by"]:checked').val();
+        var url= '/courses/' + searchBy + '/' + query + '/';
+        $('#results').empty()
+        
+        $.ajax({
+          type:'GET',
+          url:url,
+          dataType: 'JSON',
+          accepts: 'JSON',
+          async: false,
+          
+          success:function(data)
+          {
+            console.log('Successful response')
+            console.log(data)
+            $.each(data, function(index, element) {
+
+              var row = $("<div />", {
+                  "class": "row"
+              });
+              
+              var column1 = $("<div />", {
+                "class": "col-md-10"
+              });
+
+              var name = $("<h4 />", {
+              });
+
+              var courseId = $("<p />", {
+                text: element.courseId
+              });
+
+              var courselink = $("<a />", {
+                href: element.url,
+                target: '_top',
+                text: element.name
+              });
+
+              name.append(courselink);
+              column1.append(name);
+              column1.append(courseId);
+
+              row.append(column1);
+
+              var column2 = $("<div />", {
+                "class": "col-md-2 text-right"
+              });
+
+              var label = $("<label />", {
+                "class": "switch",
+              });
+
+              var span = $("<span />", {
+                "class": "slider round",
+              });
+
+              var toggle = $("<input />", {
+                type: "checkbox",
+                id: element.id,
+                name: element.id,
+                onchange: "callEnroll($(this).prop('checked'), $(this).prop('name'))"
+              });
+              
+              toggle.attr('checked',element.isEnrolled);
+
+              /*
+              <label class="switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+              </label>
+              */
+              label.append(toggle);
+              label.append(span)
+              column2.append(label);
+              row.append(column2);
+
+              $('#results').append(row);
+            });
+          },
+          error: function(xhr,data)
+          {
+            if(xhr.status < 200 || xhr.status > 299) {
+              console.log('There was an error processing your request which has corrupted this page. Please copy the text below and send to developers@blackboard.com.\r\n\r\n\tRequest Status: ' + xhr.status + ' Status Text: ' + xhr.statusText + ' ' + xhr.responseText + ' UUID: ' + uuid + ' CourseId: ' + courseId +  '\r\n\r\nOnce you are done, click OK, close this panel, and reload.');
+            }
+
+            console.log(data + " " + query + " " + xhr.status)
+          }
+        });
+      };
+    </script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
+  <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+</body>
+</html>

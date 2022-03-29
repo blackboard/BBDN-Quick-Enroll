@@ -1,0 +1,27 @@
+<!--
+        {% for course in catalog %}
+          <div class="row">
+            <div class="col-md-10">
+              <h4>{{ course['name'] }}</h4><br />
+              {{ course['id'] }}<br /><br />
+
+            </div>
+            <div class="col-md-2 text-right">
+              <input 
+                type="checkbox" 
+                id="{{ catalog[index]['id'] }}"
+                name="{{ catalog[index]['id'] }}"
+                {% if catalog[index]['isEnrolled'] == True %}checked{% endif %} 
+                data-toggle="toggle"
+                data-on="Unenroll" 
+                data-off="Enroll"
+                data-size="mini"
+                onchange="callEnroll($(this).prop('checked'), $(this).prop('name'))"
+              >
+            </div>
+          </div>
+          {% if not loop.last %}
+            <br /><hr /><br />
+          {% endif %}
+        {% endfor %}
+        --->
